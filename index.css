@@ -31,10 +31,10 @@ canvas{
 	z-index: 1;
 }
 
-button{
+.estado{
 	position: relative;
-	padding: 20px  calc(30%);
-	font-size: 18px;
+	padding: 30px  50px;
+	font-size: 20px;
 	background: rgb(100,100,100);
 	color: #fff;
 	border-style: none;
