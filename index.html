@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sorteo</title>
+	<link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+	<div class="contenedor">
+		<!--h1>Ruleta</h1-->
+		<div class="concursantes">
+			<canvas id="idcanvas" width="600" height="600"></canvas>
+			<br>
+			<button onclick="sortear()"><span id="idestado">Girar</span></button>
+		</div>
+		<button onclick="selpremio()"><span id="idpremio">Menor</span></button>
+	</div>
+	<script type="text/javascript">
+		const N=30;
+		const array_concursantes=Array.from({length: N}, (x, i) => {return {"num":i+1,"menor":false,"sel":false}});
+		const array_premio_menor=[7,8,13,15,20,22,25,27,29];
+		
+		for(let i=0;i<array_concursantes.length;i++){
+			array_premio_menor.forEach((val)=>{
+				if(array_concursantes[i].num==val){
+					//console.log(val)
+					array_concursantes[i].menor=true;
+				}
+			})
+		};
+		
+		//console.log(array_concursantes)
+		//console.log(array_premio_mayor)
+
+		let canvas=document.getElementById("idcanvas");
+		let context=canvas.getContext("2d");
+		let context2=canvas.getContext("2d");
+		let center=canvas.width/2;
+		let pos_ini=0;
+		let pos_end=15;
+		let pasosExtra=0;
+		let dt=10;
+		let vi=2*Math.PI/array_concursantes.length/dt;
+		let Nt=200;
+		let vf;
+		let a;
+
+		
+
+		
+		let clic=0;
+		let girando=false;
+		let movement;
+		let premio_menor=true;
+		
+		draw(0);
+		
+		function selpremio(){
+			
+			if(premio_menor){
+				premio_menor=false;
+				document.getElementById("idpremio").innerHTML="Mayor";
+			}
+			else{
+				premio_menor=true;
+				document.getElementById("idpremio").innerHTML="Menor";
+			}
+			
+			//console.log("Premio",premio_menor)
+			
+		}
+		
+		function sortear(){
+		let disponibles=false;
+		let menor_disponibles=false;
+		let mayor_disponibles=false;
+				for(let i=0;i<array_concursantes.length;i++){
+					if(!array_concursantes[i].sel){
+						disponibles=true;
+						if(array_concursantes[i].menor){
+							menor_disponibles=true;
+						}
+						else{
+							mayor_disponibles=true;
+						}
+					}
+				}
+		if(disponibles){
+			if (clic==0 && !girando) {
+				let canvas=document.getElementById("idcanvas");
+				clearInterval(movement);
+				movement=setInterval(function(){
+					pos_ini+=1;
+					pos_ini=pos_ini%array_concursantes.length;
+					//console.log("pos_ini",pos_ini)
+					draw(pos_ini);
+					//canvas.style.transform='rotate('+pos_ini+'deg)';
+					//
+				},dt);
+				clic=1;
+				document.getElementById("idestado").innerHTML="Detener";
+			}else{
+			
+				if(!girando){
+				clearInterval(movement);
+				//pos_end=pos_ini+10
+				
+				//if(disponibles){
+				let index=Math.round(Math.random()*(array_concursantes.length-1));
+				//console.log("ini index",index,index+1, array_concursantes[index].menor, array_concursantes[index].sel)
+					
+				if(premio_menor && menor_disponibles){
+					let conteo=0;
+					while( (array_concursantes[index].sel || !array_concursantes[index].menor) && conteo<array_concursantes.length ){
+						index++;
+						conteo++;
+						index=index%array_concursantes.length;
+						//console.log("   index",index,index+1, array_concursantes[index].menor,array_concursantes[index].sel)
+					}
+					if(conteo>=array_concursantes.length)premio_menor=false;
+					pos_end=index;
+				}else if(mayor_disponibles){
+					let conteo=0;
+					while( (array_concursantes[index].sel || array_concursantes[index].menor) && conteo<array_concursantes.length ){
+						index++;
+						conteo++;
+						index=index%array_concursantes.length;
+						//console.log("   index",index,index+1, array_concursantes[index].menor,array_concursantes[index].sel)
+					}
+					pos_end=index;
+				}
+				
+				
+				
+				
+				
+				let d=pos_end-pos_ini+2*array_concursantes.length;
+				let t_total=2.0*d/vi;
+				a=-vi/t_total;
+				pasosExtra=0;
+				
+				
+				movement=setInterval(function(){
+					//pos_ini+=1;
+					pasosExtra+=1;
+					//pos_ini=pos_ini%array_concursantes.length;
+					
+					let t=pasosExtra*dt;
+					let pos=pos_ini+vi*t+0.5*a*t*t;
+					if(pos>=array_concursantes.length)
+						pos=pos-array_concursantes.length;
+					
+					
+					if(t_total<t){
+						clearInterval(movement);
+						//pos_ini=(pos_ini+Nt-1)%array_concursantes.length;
+						pos_ini=Math.round(pos)%array_concursantes.length;
+						array_concursantes[pos_ini].sel=true;
+						girando=false;
+						document.getElementById("idestado").innerHTML=" Girar ";
+					}
+					
+					draw(pos);
+					//console.log("pos_ini",pos_ini)
+					
+					//canvas.style.transform='rotate('+pos_ini+'deg)';
+					//
+				},dt);
+				girando=true;
+				
+				}
+				
+				//clearInterval(movement);
+				clic=0;
+				document.getElementById("idestado").innerHTML=" ----- ";
+				document.getElementById("idestado").disabled=true;
+				
+				//draw();
+				
+			}
+			}
+		}
+
+		function random_color(){
+			let ar_digit=['2','3','4','5','6','7','8','9'];
+			let color='';
+			let i=0;
+			while(i<6){
+				let pos=Math.round(Math.random()*(ar_digit.length-1));
+				color=color+''+ar_digit[pos];
+				i++;
+			}
+			return '#'+color;
+		}
+		function map_color(i){
+			mapColor=[
+				{r:255,g:0,b:0},
+				{r:255,g:255,b:0},
+				{r:0,g:255,b:0},
+				{r:0,g:255,b:255},
+				{r:0,g:0,b:255},
+				{r:255,g:0,b:255},
+			];
+			//console.log("concur",array_concursantes[i],"i=",i,"l=", mapColor.length);
+			var x=(mapColor.length-1)*i/(array_concursantes.length-1);
+			var k1=Math.trunc(x);
+			var k2=(k1+1)%mapColor.length;
+			var res=x-k1;
+			
+			var r=mapColor[k1].r+res*mapColor[k2].r;
+			var g=mapColor[k1].g+res*mapColor[k2].g;
+			var b=mapColor[k1].b+res*mapColor[k2].b;
+			if(i%2==0){
+				r=0.6*r;
+				g=0.6*g;
+				b=0.6*b;
+			}
+			//console.log(x, k1,"rgb("+r+","+g+","+b+")");
+			return "rgb("+r+","+g+","+b+")";
+		}
+		
+		function draw(pos){
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		min=0.8*Math.min(w,h);
+		canvas.width=min;
+		canvas.height=min;
+		center=canvas.width/2;
+		context.beginPath();
+		context.translate(center,center);
+		context.save();
+		paso=2*Math.PI/array_concursantes.length;
+		context.rotate(pos*paso);
+		//context.rotate(pos_ini);
+		//context.rotate(2*Math.PI/array_concursantes.length);
+		//context.moveTo(center,center);
+		context.moveTo(0,0);
+		context.arc(0,0,center,0, 2*Math.PI);
+		context.lineTo(0,0);
+		context.fillStyle ='#444444';
+		context.fill();
+
+		context.beginPath();
+		context.moveTo(0,0);
+		context.arc(0,0,0.975*center,0, 2*Math.PI);
+		context.lineTo(0,0);
+		context.fillStyle ='#333333';
+		context.fill();
+
+		for (var i = 0; i < array_concursantes.length; i++) {
+		
+			context.beginPath();
+			context.moveTo(0,0);
+			context.arc(0,0,0.95*center,-(i+0.51)*2*Math.PI/array_concursantes.length, -(i-0.51)*2*Math.PI/array_concursantes.length);
+			context.lineTo(0,0);
+			if(array_concursantes[i].sel){
+				context.fillStyle ="rgb(128,128,128)";
+			}
+			else{
+				context.fillStyle =map_color(i);
+			}
+			
+			context.fill();
+
+			context.save();
+			context.beginPath();
+			//context.translate(0,0);
+			context.moveTo(0,0);
+			//context.rotate(-(-3*2*Math.PI/(5*array_concursantes.length)+(i-0.5)*2*Math.PI/array_concursantes.length));
+			context.rotate(-(i-0.15)*2*Math.PI/array_concursantes.length);
+			//context.translate(-center, -center);
+			//context.moveTo(0,0);
+			context.font = 0.1*center+"px Verdana";
+			context.textAlign = "right";
+			context.fillStyle = "rgb(40,40,40)";
+			context.strokeStyle = "rgb(128,128,128)";
+			//context.strokeStyle=map_color(i+1);
+			context.lineWidth = 2;
+			
+			context.strokeText(array_concursantes[i].num,0.88*center,0);
+			context.fillText(array_concursantes[i].num,0.88*center,0);
+			
+			
+			//context.fillStyle = "rgb(40,40,40)";
+			//context.fillText(array_concursantes[i],3*center/4,0);
+			context.restore();
+		}
+		context.restore();
+		
+		
+		
+		context.beginPath();
+		context.moveTo(0,0);
+		context.arc(0,0,0.6*center,0, 2*Math.PI);
+		context.lineTo(0,0);
+		context.fillStyle ='rgba(250,250,250,0.5)';
+		context.fill();
+		
+		context.beginPath();
+		context.moveTo(0,0);
+		context.arc(0,0,0.5*center,0, 2*Math.PI);
+		context.lineTo(0,0);
+		context.fillStyle ='#444444';
+		context.fill();
+		
+		
+		context.beginPath();
+		context.moveTo(0.9*center,0);
+		context.lineTo(center,-0.2*center);
+		context.lineTo(center, 0.2*center);
+		context.fillStyle ='rgba(250,250,250,0.9)';
+		context.fill();
+		
+		context.translate(-center,-center);
+
+		}
+	</script>
+</body>
+</html>
