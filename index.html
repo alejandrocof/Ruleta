@@ -30,7 +30,7 @@
 		
 		//console.log(array_concursantes)
 		//console.log(array_premio_mayor)
-
+		//var audio = document.getElementById("audio");
 		let canvas=document.getElementById("idcanvas");
 		let context=canvas.getContext("2d");
 		let context2=canvas.getContext("2d");
@@ -38,9 +38,8 @@
 		let pos_ini=0;
 		let pos_end=15;
 		let pasosExtra=0;
-		let dt=10;
+		let dt=10;//30
 		let vi=2*Math.PI/array_concursantes.length/dt;
-		let Nt=200;
 		let vf;
 		let a;
 
@@ -51,22 +50,42 @@
 		let girando=false;
 		let movement;
 		let premio_menor=true;
+		let pos_back=0;
 		
 		draw(0);
 		
+		
+		const cargarSonido = function (fuente) {
+			const sonido = document.createElement("audio");
+			sonido.src = fuente;
+			sonido.setAttribute("preload", "auto");
+			sonido.setAttribute("controls", "none");
+			sonido.style.display = "none"; // <-- oculto
+			document.body.appendChild(sonido);
+			return sonido;
+		};
+		const sonido = cargarSonido("ruleta.mp3");
 		function selpremio(){
-			
-			if(premio_menor){
-				premio_menor=false;
-				document.getElementById("idpremio").innerHTML="Mayor";
-			}
-			else{
-				premio_menor=true;
-				document.getElementById("idpremio").innerHTML="Menor";
+			if(!girando){
+				if(premio_menor){
+					premio_menor=false;
+				}
+				else{
+					premio_menor=true;
+				}
+				etiquetaBoton()
 			}
 			
 			//console.log("Premio",premio_menor)
 			
+		}
+		function etiquetaBoton(){
+			if(premio_menor){
+					document.getElementById("idpremio").innerHTML="Menor";
+				}
+				else{
+					document.getElementById("idpremio").innerHTML="Mayor";
+				}
 		}
 		
 		function sortear(){
@@ -85,6 +104,14 @@
 					}
 				}
 		if(disponibles){
+			if( premio_menor && !menor_disponibles ){
+				premio_menor=false;
+			}
+			if( !premio_menor && !mayor_disponibles ){
+				premio_menor=true;
+			}
+			etiquetaBoton()
+			
 			if (clic==0 && !girando) {
 				let canvas=document.getElementById("idcanvas");
 				clearInterval(movement);
@@ -92,7 +119,9 @@
 					pos_ini+=1;
 					pos_ini=pos_ini%array_concursantes.length;
 					//console.log("pos_ini",pos_ini)
+					//audio.play();
 					draw(pos_ini);
+					sonido.play();
 					//canvas.style.transform='rotate('+pos_ini+'deg)';
 					//
 				},dt);
@@ -108,32 +137,22 @@
 				let index=Math.round(Math.random()*(array_concursantes.length-1));
 				//console.log("ini index",index,index+1, array_concursantes[index].menor, array_concursantes[index].sel)
 					
-				if(premio_menor && menor_disponibles){
-					let conteo=0;
-					while( (array_concursantes[index].sel || !array_concursantes[index].menor) && conteo<array_concursantes.length ){
+				if(premio_menor){
+					while( array_concursantes[index].sel || !array_concursantes[index].menor ){
 						index++;
-						conteo++;
 						index=index%array_concursantes.length;
-						//console.log("   index",index,index+1, array_concursantes[index].menor,array_concursantes[index].sel)
 					}
-					if(conteo>=array_concursantes.length)premio_menor=false;
-					pos_end=index;
-				}else if(mayor_disponibles){
-					let conteo=0;
-					while( (array_concursantes[index].sel || array_concursantes[index].menor) && conteo<array_concursantes.length ){
+					
+				}else{
+					while( array_concursantes[index].sel || array_concursantes[index].menor ){
 						index++;
-						conteo++;
 						index=index%array_concursantes.length;
-						//console.log("   index",index,index+1, array_concursantes[index].menor,array_concursantes[index].sel)
 					}
-					pos_end=index;
 				}
+				pos_end=index;
 				
 				
-				
-				
-				
-				let d=pos_end-pos_ini+2*array_concursantes.length;
+				let d=pos_end-pos_ini+array_concursantes.length;
 				let t_total=2.0*d/vi;
 				a=-vi/t_total;
 				pasosExtra=0;
@@ -160,6 +179,10 @@
 					}
 					
 					draw(pos);
+					if(pos_back!=Math.trunc(pos) || !girando){
+						sonido.play();
+					}
+					pos_back=Math.trunc(pos);
 					//console.log("pos_ini",pos_ini)
 					
 					//canvas.style.transform='rotate('+pos_ini+'deg)';
