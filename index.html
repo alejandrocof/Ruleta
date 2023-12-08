@@ -11,7 +11,7 @@
 			<canvas id="idcanvasB" width="600" height="600"></canvas>
 			<canvas id="idcanvas" width="600" height="600"></canvas>
 			<br>
-			<button onclick="sortear()"><span id="idestado">Girar</span></button>
+			<button onclick="sortear()"><span id="idestado">girar</span></button>
 		</div>
 		<!--button onclick="selpremio()"><span id="idpremio">Menor</span></button-->
 	</div>
@@ -179,7 +179,8 @@
 						pos_ini=Math.round(pos)%array_concursantes.length;
 						array_concursantes[pos_ini].sel=true;
 						girando=false;
-						document.getElementById("idestado").innerHTML="Girar";
+						//document.getElementById("idestado").innerHTML="Girar";
+						etiquetaBoton();
 					}
 					
 					draw(pos);
@@ -276,7 +277,7 @@
 		
 		
 		canvas.addEventListener('mousemove', function(event) {
-			if(!girando){
+			if(!girando && clic==0){
 				if (context.isPointInPath(boton1, event.offsetX, event.offsetY)) {
 					premio_menor=true;
 					etiquetaBoton();
