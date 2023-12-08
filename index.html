@@ -7,11 +7,13 @@
 <body>
 	<div class="contenedor">
 		<!--h1>Ruleta</h1-->
+		<button onclick="reinicio()"><span id="idreinicio">Reiniciar</span></button>
+		<br>
+		<br>
 		<div class="concursantes">
-			<canvas id="idcanvasB" width="600" height="600"></canvas>
 			<canvas id="idcanvas" width="600" height="600"></canvas>
 			<br>
-			<button onclick="sortear()"><span id="idestado">girar</span></button>
+			<button class="estado" onclick="sortear()"><span id="idestado">girar</span></button>
 		</div>
 		<!--button onclick="selpremio()"><span id="idpremio">Menor</span></button-->
 	</div>
@@ -21,6 +23,12 @@
 		const array_premio_menor=[7,8,13,15,20,22,25,27,29];
 		
 		for(let i=0;i<array_concursantes.length;i++){
+			let str="ruletaSel"+i
+			let sel = localStorage.getItem(str);
+			//console.log(i,str,sel)
+			//if(sel==true || sel==false)array_concursantes[i].sel=sel;
+			if(sel=="0")array_concursantes[i].sel=false;
+			if(sel=="1")array_concursantes[i].sel=true;
 			array_premio_menor.forEach((val)=>{
 				if(array_concursantes[i].num==val){
 					//console.log(val)
@@ -33,9 +41,7 @@
 		//console.log(array_premio_mayor)
 		//var audio = document.getElementById("audio");
 		let canvas=document.getElementById("idcanvas");
-		let canvasB=document.getElementById("idcanvasB");
 		let context=canvas.getContext("2d");
-		let contextB=canvasB.getContext("2d");
 		let center=canvas.width/2;
 		let pos_ini=0;
 		let pos_end=15;
@@ -81,6 +87,19 @@
 			//console.log("Premio",premio_menor)
 			
 		}
+		
+		function reinicio(){
+			let text = "¿Realmente quiere reiniciar?";
+			if (confirm(text) == true) {
+				for(let i=0;i<array_concursantes.length;i++){
+					array_concursantes[i].sel=false;
+					localStorage.setItem("ruletaSel"+i, "0");
+					pos_ini=0;
+					draw(0);
+				};
+			}
+		}
+		
 		function etiquetaBoton(){
 			if(premio_menor){
 					//document.getElementById("idpremio").innerHTML="Menor";
@@ -130,7 +149,15 @@
 					//
 				},dt);
 				clic=1;
-				document.getElementById("idestado").innerHTML="Detener";
+				//document.getElementById("idestado").innerHTML="Detener";
+				if(premio_menor){
+					//document.getElementById("idpremio").innerHTML="Menor";
+					document.getElementById("idestado").innerHTML="detener";
+				}
+				else{
+					//document.getElementById("idpremio").innerHTML="Mayor";
+					document.getElementById("idestado").innerHTML="Detener";
+				}
 			}else{
 			
 				if(!girando){
@@ -178,6 +205,7 @@
 						//pos_ini=(pos_ini+Nt-1)%array_concursantes.length;
 						pos_ini=Math.round(pos)%array_concursantes.length;
 						array_concursantes[pos_ini].sel=true;
+						localStorage.setItem("ruletaSel"+pos_ini, "1");
 						girando=false;
 						//document.getElementById("idestado").innerHTML="Girar";
 						etiquetaBoton();
@@ -252,12 +280,9 @@
 		min=0.8*Math.min(w,h);
 		canvas.width=min;
 		canvas.height=min;
-		canvasB.width=min;
-		canvasB.height="20px";
 		
 		center=canvas.width/2;
 		
-		centerB=canvasB.width/2;
 		
 		const boton1 = new Path2D();
 		boton1.moveTo(0,0);
