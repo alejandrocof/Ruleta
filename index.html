@@ -8,11 +8,12 @@
 	<div class="contenedor">
 		<!--h1>Ruleta</h1-->
 		<div class="concursantes">
+			<canvas id="idcanvasB" width="600" height="600"></canvas>
 			<canvas id="idcanvas" width="600" height="600"></canvas>
 			<br>
 			<button onclick="sortear()"><span id="idestado">Girar</span></button>
 		</div>
-		<button onclick="selpremio()"><span id="idpremio">Menor</span></button>
+		<!--button onclick="selpremio()"><span id="idpremio">Menor</span></button-->
 	</div>
 	<script type="text/javascript">
 		const N=30;
@@ -32,13 +33,14 @@
 		//console.log(array_premio_mayor)
 		//var audio = document.getElementById("audio");
 		let canvas=document.getElementById("idcanvas");
+		let canvasB=document.getElementById("idcanvasB");
 		let context=canvas.getContext("2d");
-		let context2=canvas.getContext("2d");
+		let contextB=canvasB.getContext("2d");
 		let center=canvas.width/2;
 		let pos_ini=0;
 		let pos_end=15;
 		let pasosExtra=0;
-		let dt=30;//10
+		let dt=30;//30
 		let vi=2*Math.PI/array_concursantes.length/dt;
 		let vf;
 		let a;
@@ -81,10 +83,12 @@
 		}
 		function etiquetaBoton(){
 			if(premio_menor){
-					document.getElementById("idpremio").innerHTML="Menor";
+					//document.getElementById("idpremio").innerHTML="Menor";
+					document.getElementById("idestado").innerHTML="girar";
 				}
 				else{
-					document.getElementById("idpremio").innerHTML="Mayor";
+					//document.getElementById("idpremio").innerHTML="Mayor";
+					document.getElementById("idestado").innerHTML="Girar";
 				}
 		}
 		
@@ -113,7 +117,7 @@
 			etiquetaBoton()
 			
 			if (clic==0 && !girando) {
-				let canvas=document.getElementById("idcanvas");
+				//let canvas=document.getElementById("idcanvas");
 				clearInterval(movement);
 				movement=setInterval(function(){
 					pos_ini+=1;
@@ -175,7 +179,7 @@
 						pos_ini=Math.round(pos)%array_concursantes.length;
 						array_concursantes[pos_ini].sel=true;
 						girando=false;
-						document.getElementById("idestado").innerHTML=" Girar ";
+						document.getElementById("idestado").innerHTML="Girar";
 					}
 					
 					draw(pos);
@@ -194,7 +198,7 @@
 				
 				//clearInterval(movement);
 				clic=0;
-				document.getElementById("idestado").innerHTML=" ----- ";
+				document.getElementById("idestado").innerHTML="---";
 				document.getElementById("idestado").disabled=true;
 				
 				//draw();
@@ -247,28 +251,63 @@
 		min=0.8*Math.min(w,h);
 		canvas.width=min;
 		canvas.height=min;
+		canvasB.width=min;
+		canvasB.height="20px";
+		
 		center=canvas.width/2;
-		context.beginPath();
+		
+		centerB=canvasB.width/2;
+		
+		const boton1 = new Path2D();
+		boton1.moveTo(0,0);
+		boton1.lineTo(center,0);
+		boton1.lineTo(center,0.5*center);
+		boton1.lineTo(0,0.5*center);
+		context.fillStyle ='#8a8aaa';
+		context.fill(boton1);
+		
+		const boton2 = new Path2D();
+		boton2.moveTo(center,0);
+		boton2.lineTo(2*center,0);
+		boton2.lineTo(2*center,0.5*center);
+		boton2.lineTo(center,0.5*center);
+		context.fillStyle ='#8a8aaa';
+		context.fill(boton2);
+		
+		
+		canvas.addEventListener('mousemove', function(event) {
+			if(!girando){
+				if (context.isPointInPath(boton1, event.offsetX, event.offsetY)) {
+					premio_menor=true;
+					etiquetaBoton();
+				}
+				if (context.isPointInPath(boton2, event.offsetX, event.offsetY)) {
+					premio_menor=false;
+					etiquetaBoton();
+				}
+			}
+		});
+
 		context.translate(center,center);
-		context.save();
-		paso=2*Math.PI/array_concursantes.length;
-		context.rotate(pos*paso);
-		//context.rotate(pos_ini);
-		//context.rotate(2*Math.PI/array_concursantes.length);
-		//context.moveTo(center,center);
+		context.beginPath();
 		context.moveTo(0,0);
 		context.arc(0,0,center,0, 2*Math.PI);
 		context.lineTo(0,0);
 		context.fillStyle ='#444444';
 		context.fill();
-
+		
 		context.beginPath();
 		context.moveTo(0,0);
 		context.arc(0,0,0.975*center,0, 2*Math.PI);
 		context.lineTo(0,0);
 		context.fillStyle ='#333333';
 		context.fill();
-
+		
+		
+		context.save();
+		
+		paso=2*Math.PI/array_concursantes.length;
+		context.rotate(pos*paso);
 		for (var i = 0; i < array_concursantes.length; i++) {
 		
 			context.beginPath();
